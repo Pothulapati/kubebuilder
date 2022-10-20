@@ -1,5 +1,10 @@
+image:
+  file: .gitpod/Dockerfile
+
 tasks:
-  - command: |
+  - init: |
+      go install ./...
+    command: |
       # Install commitlint
       npm i -g @commitlint/{config-conventional,cli}
 
@@ -13,3 +18,4 @@ vscode:
   extensions:
     - donjayamanne.git-extension-pack
     - EditorConfig.EditorConfig
+    - golang.go
