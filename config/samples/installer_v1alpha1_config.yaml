@@ -1,0 +1,12 @@
+apiVersion: installer.gitpod.io/v1alpha1
+kind: Config
+metadata:
+  labels:
+    app.kubernetes.io/name: config
+    app.kubernetes.io/instance: config-sample
+    app.kubernetes.io/part-of: gitpod
+    app.kuberentes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: gitpod
+  name: config-sample
+spec:
+  # TODO(user): Add fields here

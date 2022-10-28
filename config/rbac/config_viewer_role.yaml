@@ -1,0 +1,27 @@
+# permissions for end users to view configs.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: config-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: gitpod
+    app.kubernetes.io/part-of: gitpod
+    app.kubernetes.io/managed-by: kustomize
+  name: config-viewer-role
+rules:
+- apiGroups:
+  - installer.gitpod.io
+  resources:
+  - configs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - installer.gitpod.io
+  resources:
+  - configs/status
+  verbs:
+  - get

@@ -3,4 +3,14 @@ layout:
 - go.kubebuilder.io/v3
 projectName: gitpod
 repo: github.com/mrsimonemms/kubebuilder
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: gitpod.io
+  group: installer
+  kind: Config
+  path: github.com/mrsimonemms/kubebuilder/api/v1alpha1
+  version: v1alpha1
 version: "3"
