@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -28,14 +29,30 @@ type ConfigSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Config. Edit config_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// Domain is the domain name that the Gitpod instance is run on
+	Domain string `json:"domain"`
+
+	// The full path to the Installer image - typically "eu.gcr.io/gitpod-core-dev/build/installer:<tag>"
+	InstallerImage string `json:"installerImage"`
+
+	// This flag tells the controller render experimental config.  Defaults to false.
+	// +optional
+	UseExperimentConfig *bool `json:"useExperimentalConfig,omitempty"`
 }
 
 // ConfigStatus defines the observed state of Config
 type ConfigStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	// A list of pointers to currently running jobs.
+	// +optional
+	Active []corev1.ObjectReference `json:"active,omitempty"`
+
+	// RFC 3339 date and time at which the object was acknowledged by the Kubelet.
+	// This is before the Kubelet pulled the container image(s) for the pod.
+	// +optional
+	LastScheduleTime *metav1.Time `json:"lastScheduleTime,omitempty"`
 }
 
 //+kubebuilder:object:root=true
