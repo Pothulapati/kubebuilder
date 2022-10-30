@@ -4,6 +4,7 @@ image:
 tasks:
   - init: |
       go install ./...
+      make run
     command: |
       # Install commitlint
       npm i -g @commitlint/{config-conventional,cli}
@@ -13,6 +14,19 @@ tasks:
 
       # Activate hooks
       husky install
+    env:
+      ENABLE_WEBHOOKS: false
+  - init: |
+      kubectl apply -f ./config/samples
+
+ports:
+  - port: 8080
+    name: operator
+    onOpen: notify
+  - port: 8081
+    name: health
+    onOpen: notify
+
 
 vscode:
   extensions:
