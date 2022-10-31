@@ -24,6 +24,18 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+type InstallerStatusType string
+
+func (i InstallerStatusType) String() string {
+	return string(i)
+}
+
+const (
+	InstallerStatusTypePending  InstallerStatusType = "PENDING"
+	InstallerStatusTypeRunning  InstallerStatusType = "RUNNING"
+	InstallerStatusTypeCleaning InstallerStatusType = "CLEANING"
+)
+
 // ConfigSpec defines the desired state of Config
 type ConfigSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
@@ -38,6 +50,12 @@ type ConfigSpec struct {
 	// This flag tells the controller render experimental config.  Defaults to false.
 	// +optional
 	UseExperimentConfig *bool `json:"useExperimentalConfig,omitempty"`
+
+	// @todo(sje): remove
+	ClientId            string `json:"clientId,omitempty"`
+	ContainerImage      string `json:"containerImage,omitempty"`
+	ContainerTag        string `json:"containerTag,omitempty"`
+	ContainerEntrypoint string `json:"containerEntrypoint,omitempty"`
 }
 
 // ConfigStatus defines the observed state of Config
@@ -53,6 +71,14 @@ type ConfigStatus struct {
 	// This is before the Kubelet pulled the container image(s) for the pod.
 	// +optional
 	LastScheduleTime *metav1.Time `json:"lastScheduleTime,omitempty"`
+
+	// Status of the config
+	// +optional
+	InstallerStatus InstallerStatusType `json:"status,omitempty"`
+
+	// Last pod name
+	// +optional
+	LastPodName string `json:"lastPodName,omitempty"`
 }
 
 //+kubebuilder:object:root=true

@@ -35,6 +35,15 @@ spec:
           spec:
             description: ConfigSpec defines the desired state of Config
             properties:
+              clientId:
+                description: '@todo(sje): remove'
+                type: string
+              containerEntrypoint:
+                type: string
+              containerImage:
+                type: string
+              containerTag:
+                type: string
               domain:
                 description: Domain is the domain name that the Gitpod instance is
                   run on
@@ -117,11 +126,17 @@ spec:
                   type: object
                   x-kubernetes-map-type: atomic
                 type: array
+              lastPodName:
+                description: Last pod name
+                type: string
               lastScheduleTime:
                 description: RFC 3339 date and time at which the object was acknowledged
                   by the Kubelet. This is before the Kubelet pulled the container
                   image(s) for the pod.
                 format: date-time
+                type: string
+              status:
+                description: Status of the config
                 type: string
             type: object
         type: object
