@@ -36,13 +36,20 @@ const (
 	InstallerStatusTypeCleaning InstallerStatusType = "CLEANING"
 )
 
+// @todo(sje): replace with imported Gitpod Installer config struct from:
+//
+//	installerConfig "github.com/gitpod-io/gitpod/installer/pkg/config/v1"
+type InstallerConfig struct {
+	Domain string `json:"domain"`
+}
+
 // ConfigSpec defines the desired state of Config
 type ConfigSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Domain is the domain name that the Gitpod instance is run on
-	Domain string `json:"domain"`
+	// The config injected into the Installer
+	InstallerConfig InstallerConfig `json:"installerConfig"`
 
 	// The full path to the Installer image - typically "eu.gcr.io/gitpod-core-dev/build/installer:<tag>"
 	InstallerImage string `json:"installerImage"`

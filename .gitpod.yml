@@ -1,6 +1,10 @@
 image:
   file: .gitpod/Dockerfile
 
+additionalRepositories:
+  - url: https://github.com/gitpod-io/gitpod
+    checkoutLocation: gitpod
+
 tasks:
   - init: |
       go install ./...
