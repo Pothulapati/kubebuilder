@@ -35,19 +35,14 @@ spec:
           spec:
             description: ConfigSpec defines the desired state of Config
             properties:
-              clientId:
-                description: '@todo(sje): remove'
-                type: string
-              containerEntrypoint:
-                type: string
-              containerImage:
-                type: string
-              containerTag:
-                type: string
-              domain:
-                description: Domain is the domain name that the Gitpod instance is
-                  run on
-                type: string
+              installerConfig:
+                description: The config injected into the Installer
+                properties:
+                  domain:
+                    type: string
+                required:
+                - domain
+                type: object
               installerImage:
                 description: The full path to the Installer image - typically "eu.gcr.io/gitpod-core-dev/build/installer:<tag>"
                 type: string
@@ -56,7 +51,7 @@ spec:
                   to false.
                 type: boolean
             required:
-            - domain
+            - installerConfig
             - installerImage
             type: object
           status:
