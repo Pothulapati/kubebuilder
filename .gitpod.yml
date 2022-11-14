@@ -8,7 +8,6 @@ additionalRepositories:
 tasks:
   - init: |
       go install ./...
-      make run
     command: |
       # Install commitlint
       npm i -g @commitlint/{config-conventional,cli}
@@ -18,10 +17,19 @@ tasks:
 
       # Activate hooks
       husky install
+
+      # Remove anything already on dev cluster
+      kubectl delete -f ./config/samples || true
+      make uninstall || true
+
+      # Install to dev cluster
+      make install
+      kubectl apply -f ./config/samples
+
+      # Run run run!!!
+      make run
     env:
       ENABLE_WEBHOOKS: false
-  - init: |
-      kubectl apply -f ./config/samples
 
 ports:
   - port: 8080
