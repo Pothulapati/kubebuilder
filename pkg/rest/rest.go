@@ -13,9 +13,12 @@ type clientsOnboard struct {
 	ClientsOnboard int64 `json:"clientsOnboard,omitempty"`
 }
 
+// @todo(sje): remove (probably)
+const clientId = "1234"
+
 func BindClient(clientResource *installerv1alpha1.Config, IP string) bool {
 	data := map[string]string{
-		"clientId": clientResource.Spec.ClientId,
+		"clientId": clientId,
 		"IP":       IP,
 	}
 
@@ -54,7 +57,7 @@ func HasClients(clientResource *installerv1alpha1.Config, IP string) bool {
 }
 
 func GetClient(clientResource *installerv1alpha1.Config, IP string) bool {
-	resp, err := http.Get("http://" + IP + ":8080/client/" + clientResource.Spec.ClientId)
+	resp, err := http.Get("http://" + IP + ":8080/client/" + clientId)
 
 	if err == nil && resp.StatusCode == http.StatusOK {
 		return true

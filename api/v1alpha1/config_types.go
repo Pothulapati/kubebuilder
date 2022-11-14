@@ -57,12 +57,6 @@ type ConfigSpec struct {
 	// This flag tells the controller render experimental config.  Defaults to false.
 	// +optional
 	UseExperimentConfig *bool `json:"useExperimentalConfig,omitempty"`
-
-	// @todo(sje): remove
-	ClientId            string `json:"clientId,omitempty"`
-	ContainerImage      string `json:"containerImage,omitempty"`
-	ContainerTag        string `json:"containerTag,omitempty"`
-	ContainerEntrypoint string `json:"containerEntrypoint,omitempty"`
 }
 
 // ConfigStatus defines the observed state of Config

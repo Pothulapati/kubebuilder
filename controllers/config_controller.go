@@ -54,38 +54,38 @@ type ConfigReconciler struct {
 func (r *ConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
 
-	var installerConfig = &installerv1alpha1.Config{}
-	if err := r.Get(ctx, req.NamespacedName, installerConfig); err != nil {
+	var operatorConfig = &installerv1alpha1.Config{}
+	if err := r.Get(ctx, req.NamespacedName, operatorConfig); err != nil {
 		log.Error(err, "unable to fetch client")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	installerConfigOld := installerConfig.DeepCopy()
+	operatorConfigOld := operatorConfig.DeepCopy()
 
-	if installerConfig.Status.InstallerStatus == "" {
-		installerConfig.Status.InstallerStatus = installerv1alpha1.InstallerStatusTypePending
+	if operatorConfig.Status.InstallerStatus == "" {
+		operatorConfig.Status.InstallerStatus = installerv1alpha1.InstallerStatusTypePending
 	}
 
-	switch installerConfig.Status.InstallerStatus {
+	switch operatorConfig.Status.InstallerStatus {
 	case installerv1alpha1.InstallerStatusTypePending:
-		installerConfig.Status.InstallerStatus = installerv1alpha1.InstallerStatusTypeRunning
+		operatorConfig.Status.InstallerStatus = installerv1alpha1.InstallerStatusTypeRunning
 
-		err := r.Status().Update(context.TODO(), installerConfig)
+		err := r.Status().Update(context.TODO(), operatorConfig)
 		if err != nil {
 			log.Error(err, "failed to update client status")
 			return ctrl.Result{}, err
 		} else {
-			log.Info("updated client status: " + installerConfig.Status.InstallerStatus.String())
+			log.Info("updated client status: " + operatorConfig.Status.InstallerStatus.String())
 			return ctrl.Result{Requeue: true}, nil
 		}
 	case installerv1alpha1.InstallerStatusTypeRunning:
-		pod := resources.CreatePod(installerConfig)
+		pod := resources.CreatePod(operatorConfig)
 
 		query := &corev1.Pod{}
 		err := r.Client.Get(ctx, client.ObjectKey{Namespace: pod.Namespace, Name: pod.ObjectMeta.Name}, query)
 		if err != nil && errors.IsNotFound(err) {
-			if installerConfig.Status.LastPodName == "" {
-				err = ctrl.SetControllerReference(installerConfig, pod, r.Scheme)
+			if operatorConfig.Status.LastPodName == "" {
+				err = ctrl.SetControllerReference(operatorConfig, pod, r.Scheme)
 				if err != nil {
 					return ctrl.Result{}, err
 				}
@@ -99,7 +99,7 @@ func (r *ConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 				return ctrl.Result{}, nil
 			} else {
-				installerConfig.Status.InstallerStatus = installerv1alpha1.InstallerStatusTypeCleaning
+				operatorConfig.Status.InstallerStatus = installerv1alpha1.InstallerStatusTypeCleaning
 			}
 		} else if err != nil {
 			log.Error(err, "cannot get pod")
@@ -108,16 +108,16 @@ func (r *ConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			query.Status.Phase == corev1.PodSucceeded {
 			log.Info("container terminated", "reason", query.Status.Reason, "message", query.Status.Message)
 
-			installerConfig.Status.InstallerStatus = installerv1alpha1.InstallerStatusTypeCleaning
+			operatorConfig.Status.InstallerStatus = installerv1alpha1.InstallerStatusTypeCleaning
 		} else if query.Status.Phase == corev1.PodRunning {
-			if installerConfig.Status.LastPodName != installerConfig.Spec.ContainerImage+installerConfig.Spec.ContainerTag {
+			if operatorConfig.Status.LastPodName != operatorConfig.Spec.InstallerImage {
 				if query.Status.ContainerStatuses[0].Ready {
 					log.Info("Trying to bind to: " + query.Status.PodIP)
 
-					if !rest.GetClient(installerConfig, query.Status.PodIP) {
-						if rest.BindClient(installerConfig, query.Status.PodIP) {
+					if !rest.GetClient(operatorConfig, query.Status.PodIP) {
+						if rest.BindClient(operatorConfig, query.Status.PodIP) {
 							log.Info("Client" /*+ installerConfig.Spec.ClientId*/ + " is binded to pod " + query.ObjectMeta.GetName() + ".")
-							installerConfig.Status.InstallerStatus = installerv1alpha1.InstallerStatusTypeCleaning
+							operatorConfig.Status.InstallerStatus = installerv1alpha1.InstallerStatusTypeCleaning
 						} else {
 							log.Info("Client not added.")
 						}
@@ -129,7 +129,7 @@ func (r *ConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 					return ctrl.Result{Requeue: true}, err
 				}
 
-				log.Info("Client last pod name: " + installerConfig.Status.LastPodName)
+				log.Info("Client last pod name: " + operatorConfig.Status.LastPodName)
 				log.Info("Pod is running.")
 			}
 		} else if query.Status.Phase == corev1.PodPending {
@@ -138,22 +138,22 @@ func (r *ConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			return ctrl.Result{Requeue: true}, err
 		}
 
-		if !reflect.DeepEqual(installerConfigOld.Status, installerConfig.Status) {
-			err = r.Status().Update(context.TODO(), installerConfig)
+		if !reflect.DeepEqual(operatorConfigOld.Status, operatorConfig.Status) {
+			err = r.Status().Update(context.TODO(), operatorConfig)
 			if err != nil {
 				log.Error(err, "failed to update client status from running")
 				return ctrl.Result{}, err
 			} else {
-				log.Info("updated client status RUNNING -> " + installerConfig.Status.InstallerStatus.String())
+				log.Info("updated client status RUNNING -> " + operatorConfig.Status.InstallerStatus.String())
 				return ctrl.Result{Requeue: true}, nil
 			}
 		}
 	case installerv1alpha1.InstallerStatusTypeCleaning:
 		query := &corev1.Pod{}
-		HasClients := rest.HasClients(installerConfig, query.Status.PodIP)
+		HasClients := rest.HasClients(operatorConfig, query.Status.PodIP)
 
-		err := r.Client.Get(ctx, client.ObjectKey{Namespace: installerConfig.Namespace, Name: installerConfig.Status.LastPodName}, query)
-		if err == nil && installerConfig.ObjectMeta.DeletionTimestamp.IsZero() {
+		err := r.Client.Get(ctx, client.ObjectKey{Namespace: operatorConfig.Namespace, Name: operatorConfig.Status.LastPodName}, query)
+		if err == nil && operatorConfig.ObjectMeta.DeletionTimestamp.IsZero() {
 			if !HasClients {
 				err = r.Delete(context.TODO(), query)
 				if err != nil {
@@ -166,21 +166,21 @@ func (r *ConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			}
 		}
 
-		if installerConfig.Status.LastPodName != installerConfig.Spec.ContainerImage+installerConfig.Spec.ContainerTag {
-			installerConfig.Status.InstallerStatus = installerv1alpha1.InstallerStatusTypeRunning
-			installerConfig.Status.LastPodName = installerConfig.Spec.ContainerImage + installerConfig.Spec.ContainerTag
+		if operatorConfig.Status.LastPodName != operatorConfig.Spec.InstallerImage {
+			operatorConfig.Status.InstallerStatus = installerv1alpha1.InstallerStatusTypeRunning
+			operatorConfig.Status.LastPodName = operatorConfig.Spec.InstallerImage
 		} else {
-			installerConfig.Status.InstallerStatus = installerv1alpha1.InstallerStatusTypePending
-			installerConfig.Status.LastPodName = ""
+			operatorConfig.Status.InstallerStatus = installerv1alpha1.InstallerStatusTypePending
+			operatorConfig.Status.LastPodName = ""
 		}
 
-		if !reflect.DeepEqual(installerConfigOld.Status, installerConfig.Status) {
-			err = r.Status().Update(context.TODO(), installerConfig)
+		if !reflect.DeepEqual(operatorConfigOld.Status, operatorConfig.Status) {
+			err = r.Status().Update(context.TODO(), operatorConfig)
 			if err != nil {
 				log.Error(err, "failed to update client status from cleaning")
 				return ctrl.Result{}, err
 			} else {
-				log.Info("updated client status CLEANING -> " + installerConfig.Status.InstallerStatus.String())
+				log.Info("updated client status CLEANING -> " + operatorConfig.Status.InstallerStatus.String())
 				return ctrl.Result{Requeue: true}, nil
 			}
 		}

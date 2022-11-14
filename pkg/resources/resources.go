@@ -9,29 +9,22 @@ import (
 
 func getLabels(clientResource *installerv1alpha1.Config) map[string]string {
 	return map[string]string{
-		"app":     clientResource.Spec.ContainerImage,
-		"version": clientResource.Spec.ContainerTag,
+		"installer": clientResource.Spec.InstallerImage,
 	}
 }
 
 func CreatePod(clientResource *installerv1alpha1.Config) *corev1.Pod {
 	return &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      clientResource.Spec.ContainerImage + clientResource.Spec.ContainerTag,
+			Name:      clientResource.Spec.InstallerImage,
 			Namespace: clientResource.Namespace,
 			Labels:    getLabels(clientResource),
 		},
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
 				{
-					Name:  clientResource.Spec.ContainerImage,
-					Image: clientResource.Spec.ContainerImage + ":" + clientResource.Spec.ContainerTag,
-					Env: []corev1.EnvVar{
-						{
-							Name:  "CLIENT_ID",
-							Value: clientResource.Spec.ClientId,
-						},
-					},
+					Name:  "gitpod-installer", // @todo(sje): do we need some additional things in here?
+					Image: clientResource.Spec.InstallerImage,
 					Ports: []corev1.ContainerPort{
 						{
 							Name:          "http",
